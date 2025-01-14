@@ -3,18 +3,12 @@
 let started = false;
 let currentPos = 0;
 let iterator = 1;
+let scaling = 1;
 
 let inputFunc;
 let compiledFunc;
 let derivative;
-
-let demoIter = 0;
-let demoFunc = 'x^2';
-let demoCompiled = math.compile(demoFunc);
-let demoDeriv = math.derivative(demoFunc, 'x');
-const demoDefault = 0;
-let demoPos = demoDefault;
-const demoRate = 0.25;
+let gradients;
 
 let g1options = {
     target: '#graph-1',
@@ -39,33 +33,6 @@ let g1options = {
     ]
 }
 
-let demoOptions = {
-    target: '#demo-graph',
-    title: "set up your gradient descent!",
-    xAxis: {
-        label: 'x - axis',
-        domain: [-10, 10]
-    },
-    yAxis: {
-        label: 'y - axis',
-        domain: [-50, 100]
-    },
-    data: [
-        {
-            fn: 'x^2',
-            derivative: {
-                fn: '2 * x',
-                x0: demoDefault
-            },
-            attr: { "stroke-width": 3 }
-        }
-    ]
-}
-
-const badJSONDeepCopy = obj => {
-    return JSON.parse(JSON.stringify(obj))
-}
-
 const redrawPlot = (options, fn, deriv, evalAt, iter, pointsDiff = undefined) => {
     // strange quirk to force a title rerender
     delete options.title;
@@ -86,12 +53,28 @@ const redrawPlot = (options, fn, deriv, evalAt, iter, pointsDiff = undefined) =>
                     graphType: 'scatter'
                 }
             );
+            options.data.push(
+                {
+                    vector: gradients[0].vector,
+                    offset: gradients[0].offset,
+                    graphType: 'polyline',
+                    fnType: 'vector'
+                }
+            )
         }
         else{
             options.data[1].points.push(pointsDiff);
         }
+        options.data.push(
+            {
+                vector: gradients[gradients.length - 1].vector,
+                offset: gradients[gradients.length - 1].offset,
+                graphType: 'polyline',
+                fnType: 'vector'
+            }
+        )
     }
-    
+    console.log(options) 
     functionPlot(options);
 }
 
@@ -100,7 +83,6 @@ const updatePos = (current, deriv, learning) => {
 }
 
 const handleStartClick = () => {
-    // console.log("start")
     let inputEval = document.getElementById("initial-start").value;
     let evalAt = Number(inputEval);
     if (isNaN(evalAt)){ return; }
@@ -119,18 +101,34 @@ const handleStartClick = () => {
     compiledFunc = math.compile(inputFunc);
     
     derivative = math.derivative(inputFunc, 'x');
+    const m = derivative.evaluate({x: currentPos})
+    const y = compiledFunc.evaluate({x: currentPos})
+    const vectorMagnitude = math.sqrt(1 + m ** 2)
+    const vector = [-1 *m / vectorMagnitude * scaling, -1 *m ** 2 / vectorMagnitude * scaling]
+    gradients = [{offset: [currentPos, y], vector}] 
     redrawPlot(g1options, inputFunc, derivative.toString(), currentPos, iterator, [currentPos, compiledFunc.evaluate({x: currentPos})]);
 };
     
 const handleUpdateClick = () => {
-    // console.log("update")
     if (!started) { return; }
     let learningRate = document.getElementById("learning-rate").value;
     if (isNaN(learningRate)) { return; }
 
     iterator++;
     currentPos = updatePos(currentPos, derivative, learningRate)
+    const m = derivative.evaluate({x: currentPos})
+    const y = compiledFunc.evaluate({x: currentPos})
+    const intercept = y - (m * currentPos)
+    const vectorMagnitude = math.sqrt(1 + m ** 2)
+    const vector = [-1* m / vectorMagnitude * scaling, -1*m ** 2 / vectorMagnitude * scaling]
+    let derivativeFunc
+    if (intercept > 0) {
+        derivativeFunc = String(m.toFixed(10)) + "x+" + String(intercept.toFixed(10))
+    } else {
+        derivativeFunc = String(m.toFixed(10)) + "x" + String(intercept.toFixed(10))
+    }
 
+    gradients.push({offset: [currentPos, y], vector})
     document.getElementById("current-pos").innerHTML = currentPos;
     redrawPlot(g1options, inputFunc, derivative.toString(), currentPos, iterator, [currentPos, compiledFunc.evaluate({x: currentPos})]);
 };
@@ -140,43 +138,7 @@ let setFnInputVal = (val, start = 4) => {
     document.getElementById("initial-start").value = start;
 }
 
-
-
-const randomStart = () => {
-    return Math.random()*64 - 32;
-}
-
-
-const advanceDemo = () => {
-    if (Math.abs(demoPos) < 0.01){
-        let newStart = randomStart();
-        demoOptions.data = [
-            {
-                fn: 'x^2',
-                derivative: {
-                    fn: '2 * x',
-                    x0: newStart
-                },
-                attr: { "stroke-width": 3 }
-            }
-        ]
-        demoIter = 0;
-        demoPos = newStart;
-        document.getElementById("demo-start").innerHTML = newStart.toFixed(2);
-    }
-    else{
-        demoIter++;
-    }
-    demoPos = updatePos(demoPos, demoDeriv, demoRate);
-    document.getElementById("demo-current").innerHTML = demoPos.toFixed(2);
-
-    redrawPlot(demoOptions, demoFunc, demoDeriv.toString(), demoPos, demoIter, [demoPos, demoCompiled.evaluate({x: demoPos})]);
-}
-
-setInterval(() => advanceDemo(), 500);
-
 functionPlot(g1options);
-advanceDemo()
 
 document.getElementById("fn-x-2").addEventListener("click", () => setFnInputVal("x^2"));
 document.getElementById("fn-x-3").addEventListener("click", () => setFnInputVal("x^3"));
