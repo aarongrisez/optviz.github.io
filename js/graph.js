@@ -28,7 +28,8 @@ let g1options = {
                 fn: '2 * x + 1',
                 x0: 2
             },
-            attr: { "stroke-width": 3 }
+            attr: { "stroke-width": 0 },
+            skipTip: true
         }
     ]
 }
@@ -58,7 +59,9 @@ const redrawPlot = (options, fn, deriv, evalAt, iter, pointsDiff = undefined) =>
                     vector: gradients[0].vector,
                     offset: gradients[0].offset,
                     graphType: 'polyline',
-                    fnType: 'vector'
+                    fnType: 'vector',
+                    color: 'red',
+                    attr: { "stroke-width": 1.5 }
                 }
             )
         }
@@ -70,7 +73,9 @@ const redrawPlot = (options, fn, deriv, evalAt, iter, pointsDiff = undefined) =>
                 vector: gradients[gradients.length - 1].vector,
                 offset: gradients[gradients.length - 1].offset,
                 graphType: 'polyline',
-                fnType: 'vector'
+                fnType: 'vector',
+                color: 'red',
+                attr: { "stroke-width": 1.5 }
             }
         )
     }
