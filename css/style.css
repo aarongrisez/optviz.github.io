@@ -14,6 +14,10 @@ body {
     animation: heartbeat 2s infinite;
 }
 
+.title {
+    font-size: 1rem;
+}
+
 @keyframes handwave {
     0% {
         transform: rotate(0.0deg)
