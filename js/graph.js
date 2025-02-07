@@ -21,17 +21,11 @@ let g1options = {
         label: 'y - axis',
         domain: [-18, 36]
     },
-    data: [
-        {
-            fn: 'x^2+x',
-            derivative: {
-                fn: '2 * x + 1',
-                x0: 2
-            },
-            attr: { "stroke-width": 0 },
-            skipTip: true
-        }
-    ]
+    data: [{
+        points: [],
+        fnType: 'points',
+        graphType: 'scatter'
+    }]
 }
 
 const redrawPlot = (options, fn, deriv, evalAt, iter, pointsDiff = undefined) => {
@@ -79,7 +73,6 @@ const redrawPlot = (options, fn, deriv, evalAt, iter, pointsDiff = undefined) =>
             }
         )
     }
-    console.log(options) 
     functionPlot(options);
 }
 
