@@ -29,7 +29,16 @@ let g1options = {
 }
 
 const redrawPlot = (options, fn, deriv, evalAt, iter, pointsDiff = undefined) => {
+    /**
+     * Re-renders the entire plot
+     * @param {Object} options      Plotting options, see https://mauriciopoppe.github.io/function-plot/ for details
+     * @param {String} fn           String representation of the objective function (TODO: this doesn't change; doesn't need to be a function arg)
+     * @param {String} deriv        String representation of the objective derivative (TODO: same as above)
+     * @param {Number} evalAt       x-coordinate for evaluating the objective function and derivative
+     * @param {Array}  pointsDiff   Ordered pair for new function evaluation to be added to the scatter plot (TODO: handle this like the list of gradients)
+     */
     // strange quirk to force a title rerender
+    console.log(options, fn, deriv, pointsDiff)
     delete options.title;
     functionPlot(options);
 
